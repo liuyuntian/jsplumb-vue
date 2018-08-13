@@ -5,6 +5,7 @@ import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-default/index.css';
 import App from './App';
 import router from './router';
+import {jsPlumb} from 'jsplumb';
 
 Vue.config.productionTip = false;
 Vue.use(ElementUI);
