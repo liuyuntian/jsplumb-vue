@@ -1,18 +1,7 @@
 <template>
   <div>
-    <div> <a class="btn btn-success btn-controler" href="#" data-template="tpl-menu" role="button">
-      <i class="fa fa-navicon" aria-hidden="true"></i>
-      菜单</a></div>
-    <script id="tpl-menu" type="text/html">
-    <div class="pa" id='{{id}}' style='top:{{top}}px;left:{{left}}px'>
-      <div class="panel panel-default panel-node panel-info">
-        <div id='{{id}}-heading' data-id="{{id}}" class="panel-heading">菜单
-          <span class="delete-node pull-right" data-type="deleteNode" data-id="{{id}}">X</span>
-        </div>
-      </div>
-    </div>
-  </script>
-    <div class="panel-body points demo flow_chart" id="points">
+    <div><el-button type="primary" @mousedown="createDiv">表格</el-button> </div>
+    <div class="panel-body points demo flow_chart" id="points" @mouseup="mouse_up($event)">
     </div>
     <el-dialog
       title="修改表属性"
@@ -68,14 +57,16 @@
   import $ from 'jquery';
   import ElIcon from '../../node_modules/element-ui/packages/icon/src/icon';
   import MyMenu from '../views/Other';
+
   require('../assets/css/demo.css');
   require('../assets/css/jsplumb.css');
 
   export default {
-    components: { ElIcon, MyMenu },
+    components: {ElIcon, MyMenu},
     name: 'Index',
     data() {
       return {
+        isdragging: false,
         instance: {},
         currentTable: null,
         tableForm: {
@@ -124,6 +115,50 @@
       };
     },
     methods: {
+      mouse_up(event) {
+        const vm = this;
+        if (this.isdragging === false) {
+          $('.points').append(
+            `<div id="22" class="point chart_act_">
+              <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 14px;height: 20px;line-height: 20px">表格</span><i class="delete-show el-icon-delete"></i></div>
+              <div class="add-content"></div>
+               </div>`,
+          );
+          $('#22').css('left', event.offsetX);
+          $('#22').css('top', event.offsetY);
+          vm.instance.addEndpoint('22', {
+            uuid: '22-bottom',
+            anchor: 'Bottom',
+            maxConnections: -1,
+            // connectorStyle: { stroke: 'green' },
+          }, {
+            isSource: true,
+            isTarget: true,
+            dragAllowedWhenFull: true,
+          });
+          vm.instance.addEndpoint('22', {
+            uuid: '22-top',
+            anchor: 'Top',
+            maxConnections: -1,
+            // connectorStyle: { stroke: 'gray' },
+          }, {
+            isSource: true,
+            isTarget: true,
+            dragAllowedWhenFull: true,
+          });
+          $('.click-point').bind('click', function (e) {
+            vm.dialogVisible = true;
+            vm.currentTable = e.target.parentNode.parentNode.id;
+            console.log(vm.currentTable);
+          })
+          $('.delete-show').bind('click', function () {
+            vm.deleteVisible = true;
+          });
+        }
+      },
+      createDiv() {
+        this.isdragging = true;
+      },
       addParam() {
         const vm = this;
         vm.dialogVisible = false;
