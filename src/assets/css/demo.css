@@ -8,6 +8,10 @@
 	width:16em;
 	line-height:2em;
 }
+.ivu-icon:before,
+.ivu-icon:after {
+  font-family: Ionicons !important;
+}
 
 /** HOVER EFFECTS **/
 .points .point:hover, .points .point._jsPlumb_source_hover, .points .point._jsPlumb_target_hover {

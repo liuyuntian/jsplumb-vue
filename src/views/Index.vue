@@ -10,25 +10,23 @@
     <Modal
       title="修改表属性"
       v-model="dialogVisible">
-      <Form ref="form" :model="tableForm" :label-width="80">
+      <Form v-mode="tableForm">
         <FormItem label="表名：">
-          <Input v-model="tableForm.name"></Input>
+          <Input disabled v-model="tableForm.name"></Input>
         </FormItem>
         <FormItem label="Code：">
-          <Input :disabled="newNodeEvent == null" v-model="tableForm.code"></Input>
+          <Input disabled v-model="tableForm.code"></Input>
         </FormItem>
-        <div style="height: 50px">
-          <Button @click="addColumns" type="primary" style="float: right;font-size: 14px;">增加字段</Button>
-        </div>
-        <div v-for="(item,index) in tableForm.columns">
+      </Form>
+      <Form ref="form" :model="currentParam">
           <FormItem label="字段名：">
-            <Input v-model="item.name"></Input>
+            <Input v-model="currentParam.name"></Input>
           </FormItem>
           <FormItem label="code：">
-            <Input v-model="item.code"></Input>
+            <Input v-model="currentParam.code"></Input>
           </FormItem>
-          <FormItem label="类型">
-            <Select v-model="item.dataType" placeholder="请选择类型">
+          <FormItem label="类型：">
+            <Select v-model="currentParam.dataType" label-in-value="true" placeholder="请选择类型" @on-change="getSelectedValue">
               <Option
                 v-for="o in options"
                 :key="o.value"
@@ -37,24 +35,27 @@
               </Option>
             </Select>
           </FormItem>
-          <div style="height: 50px">
-            <Button @click="deleteColumns(index)" type="primary" style="float: right;font-size: 14px;">删除</i></Button>
-          </div>
-        </div>
       </Form>
       <span slot="footer" class="dialog-footer">
     <Button @click="cancel">取 消</Button>
-    <Button type="primary" @click="addParam">确 定</Button>
+    <Button type="primary" @click="editOk">确 定</Button>
   </span>
     </Modal>
     <Modal
-      title="删除表"
-      v-model="deleteVisible"
+      title="修改表名"
+      v-model="editVisible"
       width="30%">
-      <span>确定要删除该项吗？</span>
+      <Form ref="tableForm" :model="tableForm" :label-width="60" :rules="ruleInline">
+        <FormItem prop="name" label="表名：">
+          <Input v-model="tableForm.name"/>
+        </FormItem>
+        <FormItem prop="code" label="Code：">
+          <Input :disabled="newNodeEvent == null" v-model="tableForm.code"/>
+        </FormItem>
+      </Form>
       <span slot="footer" class="dialog-footer">
-    <Button @click="deleteVisible = false">取 消</Button>
-    <Button type="primary" @click="deleteVisible = false">确 定</Button>
+    <Button @click="editCancel">取 消</Button>
+    <Button type="primary" @click="tableChange">确 定</Button>
   </span>
     </Modal>
   </div>
@@ -62,10 +63,10 @@
 </template>
 
 <script>
-  import 'iview/dist/styles/iview.css';
   import $ from 'jquery';
   import myData from '../assets/data.json';
 
+  require('iview/dist/styles/iview.css');
   require('../assets/css/demo.css');
   require('../assets/css/jsplumb.css');
 
@@ -74,6 +75,17 @@
     name: 'Index',
     data() {
       return {
+        ruleInline: {
+          user: [
+            {required: true, message: '请填写表名', trigger: 'blur'},
+          ],
+          password: [
+            {required: true, message: '请填写Code', trigger: 'blur'},
+          ],
+        },
+        lastParam: {}, // 编辑之前的字段
+        currentParam: {}, // 正在编辑的字段
+        currentParamIndex: null, // 选中的字段索引
         overlay: null,
         options: [{
           value: 0,
@@ -134,10 +146,10 @@
         currentTable: null,
         tableForm: {
           columns: [],
-        },
+        },   // 正在编辑的表格
         currentItem: 0,
         currentInput: null,
-        deleteVisible: false,
+        editVisible: false,
         dialogVisible: false,
         data: {
           schemes: [
@@ -183,6 +195,32 @@
       this.data = myData;
     },
     methods: {
+      getSelectedValue(g) {
+        this.currentParam.dataType = g.value;
+        this.currentParam.dataTypeText = g.label;
+      },
+      editOk() {
+        this.data.schemes[this.currentItem].columns[this.currentParamIndex] = this.currentParam;
+        $('#' + this.data.schemes[this.currentItem].code + '-' + this.data.schemes[this.currentItem].columns[this.currentParamIndex].code).find('.param-name').html(this.currentParam.name + '(' + this.currentParam.dataTypeText + ')');
+        this.dialogVisible = false;
+        },
+      editCancel() {
+        this.editVisible = false;
+        this.tableForm = {};
+      },
+      tableChange() {
+        this.editVisible = false;
+        this.$refs.tableForm.validate((valid) => {
+          if (valid) {
+            this.$Message.success('修改成功!');
+            this.data.schemes[this.currentItem].name = this.tableForm.name;
+            this.data.schemes[this.currentItem].code = this.tableForm.code;
+          } else {
+            this.$Message.error('修改失败，请正确完善信息！');
+          }
+        });
+        console.log(this.data.schemes);
+      },
       cancel() {
         this.dialogVisible = false;
       },
@@ -381,13 +419,13 @@
           for (const point of vm.data.schemes) {
             $('.points').append(
               `<div id="${point.code}" class="point">
-              <div style="padding:0.5em 0.5em; background: #acd; cursor: default; display: flex; justify-content: space-between"><p class="click-point">🖊</p><span class="name-change" style="font-size: 12px;">${point.name}</span><p class="delete-show">×</p></div>
+              <div style="padding:0.5em 0.5em; background: #acd; cursor: default; display: flex; justify-content: space-between"><i class="click-point">❗</i><span class="name-change" style="font-size: 12px;">${point.name}</span><i class="delete-show ios-close">×</i></div>
               <div class="add-content"></div>
               <!--<div style="display: flex; justify-content: start" class="operation"><span>添加字段</span><span>查看数据</span></div>-->
                </div>`,
             );
             for (const m of point.columns) {
-              $('#' + point.code).find('.add-content').append(`<div style="border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" id="${point.code + '-' + m.code}"><div class="param-name" style="font-size: 12px">${m.name}(${m.dataTypeText})</div><div><span style="cursor: pointer; margin-right: 10px">🖊</span><span style="cursor: pointer">×</span></div></div>`);
+              $('#' + point.code).find('.add-content').append(`<div style="border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" id="${point.code + '-' + m.code}"><div class="param-name" style="font-size: 12px">${m.name}(${m.dataTypeText})</div><div><span class="edit-row" style="cursor: pointer; margin-right: 10px">✏</span><span class="delete-row" style="cursor: pointer">×</span></div></div>`);
               vm.instance.addEndpoint(point.code + '-' + m.code, {
                 uuid: `${point.code + '-' + m.code}-left`,
                 anchor: 'Left',
@@ -410,22 +448,44 @@
               });
             }
           }
+          // 编辑表格名称
           $('.click-point').bind('click', function (e) {
-            vm.dialogVisible = true;
+            vm.editVisible = true;
             vm.currentTable = e.target.parentNode.parentNode.id;
             for (var k = 0; k < vm.data.schemes.length; k++) {
               if (vm.data.schemes[k].code == e.target.parentNode.parentNode.id) {
                 vm.currentItem = k;
-                vm.tableForm = vm.data.schemes[vm.currentItem];
+                vm.tableForm = {...vm.data.schemes[vm.currentItem]};
                 break;
               }
             }
+            console.log(vm.data.schemes);
           })
           // 删除Node
           $('.delete-show').bind('click', function (e) {
             if (confirm('确定删除该数据表吗')) {
               vm.instance.remove(e.target.parentNode.parentNode.id);
             }
+          });
+          // 编辑每一行字段
+          $('.edit-row').bind('click', function (e) {
+            let tableCode = e.target.parentNode.parentNode.id.split('-')[0];
+            let paramCode = e.target.parentNode.parentNode.id.split('-')[1];
+            for (let n = 0; n < vm.data.schemes.length; n++) {
+              if (vm.data.schemes[n].code == tableCode) {
+                vm.currentItem = n;
+                vm.tableForm = { ...vm.data.schemes[n] };
+                for (let q = 0; q <  vm.data.schemes[n].columns.length; q++) {
+                  if (vm.data.schemes[n].columns[q].code == paramCode) {
+                    vm.currentParam = { ...vm.data.schemes[n].columns[q] };
+                    vm.lastParam = { ...vm.data.schemes[n].columns[q] };
+                    vm.currentParamIndex = q;
+                    break;
+                  }
+                }
+              }
+            }
+            vm.dialogVisible = true;
           });
           // init transition
           for (const i of vm.data.relations) {

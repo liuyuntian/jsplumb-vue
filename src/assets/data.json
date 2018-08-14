@@ -104,8 +104,8 @@
       "name": "用户信息",
       "code": "User",
       "location": [
-        500,
-        40
+        40,
+        400
       ],
       "status": 0,
       "columns": [
