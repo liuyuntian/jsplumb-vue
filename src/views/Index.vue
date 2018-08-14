@@ -2,82 +2,79 @@
   <div id="drawDiv" @mousemove="moveMouse($event)" style="height: 100%;">
     <div>
       <div style="padding: 10px 20px; text-align: center; background: #cccccc;color: #000;width: 100px; cursor: pointer"
-           @click="createDiv()">新建表
+           @click="createDiv">新建表
       </div>
     </div>
     <div class="panel-body points demo flow_chart" id="points" style="height: 80%;">
     </div>
-    <el-dialog
+    <Modal
       title="修改表属性"
-      :visible.sync="dialogVisible"
-      width="30%">
-      <el-form ref="form" :model="tableForm" label-width="80px">
-        <el-form-item label="表名：">
-          <el-input v-model="tableForm.name"></el-input>
-        </el-form-item>
-        <el-form-item label="Code：">
-          <el-input :disabled="newNodeEvent == null" v-model="tableForm.code"></el-input>
-        </el-form-item>
+      v-model="dialogVisible">
+      <Form ref="form" :model="tableForm" :label-width="80">
+        <FormItem label="表名：">
+          <Input v-model="tableForm.name"></Input>
+        </FormItem>
+        <FormItem label="Code：">
+          <Input :disabled="newNodeEvent == null" v-model="tableForm.code"></Input>
+        </FormItem>
         <div style="height: 50px">
-          <el-button @click="addColumns" type="primary" style="float: right;font-size: 14px;"><i
-            class="el-icon-plus">增加字段</i></el-button>
+          <Button @click="addColumns" type="primary" style="float: right;font-size: 14px;">增加字段</Button>
         </div>
         <div v-for="(item,index) in tableForm.columns">
-          <el-form-item label="字段名：">
-            <el-input v-model="item.name"></el-input>
-          </el-form-item>
-          <el-form-item label="code：">
-            <el-input v-model="item.code"></el-input>
-          </el-form-item>
-          <el-form-item label="类型">
-            <el-select v-model="item.dataType" placeholder="请选择类型">
-              <el-option
+          <FormItem label="字段名：">
+            <Input v-model="item.name"></Input>
+          </FormItem>
+          <FormItem label="code：">
+            <Input v-model="item.code"></Input>
+          </FormItem>
+          <FormItem label="类型">
+            <Select v-model="item.dataType" placeholder="请选择类型">
+              <Option
                 v-for="o in options"
                 :key="o.value"
                 :label="o.label"
                 :value="o.value">
-              </el-option>
-            </el-select>
-          </el-form-item>
+              </Option>
+            </Select>
+          </FormItem>
           <div style="height: 50px">
-            <el-button @click="deleteColumns(index)" type="primary" style="float: right;font-size: 14px;"><i
-              class="el-icon-plus">删除</i></el-button>
+            <Button @click="deleteColumns(index)" type="primary" style="float: right;font-size: 14px;">删除</i></Button>
           </div>
         </div>
-      </el-form>
+      </Form>
       <span slot="footer" class="dialog-footer">
-    <el-button @click="cancel">取 消</el-button>
-    <el-button type="primary" @click="addParam">确 定</el-button>
+    <Button @click="cancel">取 消</Button>
+    <Button type="primary" @click="addParam">确 定</Button>
   </span>
-    </el-dialog>
-    <el-dialog
+    </Modal>
+    <Modal
       title="删除表"
-      :visible.sync="deleteVisible"
+      v-model="deleteVisible"
       width="30%">
       <span>确定要删除该项吗？</span>
       <span slot="footer" class="dialog-footer">
-    <el-button @click="deleteVisible = false">取 消</el-button>
-    <el-button type="primary" @click="deleteVisible = false">确 定</el-button>
+    <Button @click="deleteVisible = false">取 消</Button>
+    <Button type="primary" @click="deleteVisible = false">确 定</Button>
   </span>
-    </el-dialog>
+    </Modal>
   </div>
 
 </template>
 
 <script>
+  import 'iview/dist/styles/iview.css';
   import $ from 'jquery';
-  import ElIcon from '../../node_modules/element-ui/packages/icon/src/icon';
-  import MyMenu from '../views/Other';
   import myData from '../assets/data.json';
 
   require('../assets/css/demo.css');
   require('../assets/css/jsplumb.css');
 
   export default {
-    components: {ElIcon, MyMenu},
+    components: {},
     name: 'Index',
     data() {
       return {
+        overlay: null,
         options: [{
           value: 0,
           label: 'Int',
@@ -199,7 +196,7 @@
         }
         $('.points').append(
           `<div id="${vm.tableForm.code}" class="point">
-              <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 12px;height: 20px;line-height: 20px">${vm.tableForm.name}</span><i class="delete-show el-icon-delete"></i></div>
+              <div style="padding:0.5em 0.5em; cursor:default; background: #acd; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 12px;height: 20px;line-height: 20px">${vm.tableForm.name}</span><i class="delete-show ivu-icon-ios-close"></i></div>
               <div class="add-content"></div>
                </div>`,
         );
@@ -211,7 +208,7 @@
           console.log(vm.currentTable);
         })
         $('.delete-show').bind('click', function () {
-          vm.deleteVisible = true;
+
         });
         vm.currentTable = vm.tableForm.code;
         $('#' + vm.currentTable).find('.name-change').html(vm.tableForm.name)
@@ -271,22 +268,22 @@
           vm.instance.removeAllEndpoints($('#' + vm.currentTable).attr('id'));
           // 编辑的数据和点
           for (const i of vm.tableForm.columns) {
-            $('#' + vm.currentTable).find('.add-content').append(`<div id="${vm.currentTable + ' ' + i.code}" class="param-name" style="padding: 0 0.8em;border-top: 1px solid #cccccc; font-size: 12px">${i.name}</div>`);
+            $('#' + vm.tableForm.code).find('.add-content').append(`<div style="border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" id="${vm.tableForm.code + '-' + i.code}"><div class="param-name" style="font-size: 12px">${i.name}(${i.dataTypeText})</div><div><span style="cursor: pointer; margin-right: 10px">🖊</span><span style="cursor: pointer">×</span></div></div>`);
             vm.instance.addEndpoint(vm.currentTable + ' ' + i.code, {
-              uuid: `${vm.currentTable + ' ' + i.code}-left`,
+              uuid: `${vm.currentTable + '-' + i.code}-left`,
               anchor: 'Left',
               maxConnections: -1,
-              connectorStyle: {stroke: 'green'},
+              connectorStyle: {stroke: '#61B7CF'},
             }, {
               isSource: true,
               isTarget: true,
               dragAllowedWhenFull: true,
             });
-            vm.instance.addEndpoint(vm.currentTable + ' ' + i.code, {
-              uuid: `${vm.currentTable + ' ' + i.code}-right`,
+            vm.instance.addEndpoint(vm.currentTable + '-' + i.code, {
+              uuid: `${vm.currentTable + '-' + i.code}-right`,
               anchor: 'Right',
               maxConnections: -1,
-              // connectorStyle: { stroke: 'gray' },
+              connectorStyle: {stroke: '#61B7CF'},
             }, {
               isSource: true,
               isTarget: true,
@@ -330,7 +327,7 @@
       createFlow(flowData) {
         var vm = this;
         console.log('Index created');
-        const color = '#acd';
+        const color = '#aaccdd00';
         vm.instance = jsPlumb.getInstance({
           // notice the 'curviness' argument to this Bezier curve.
           // the curves on this page are far smoother
@@ -339,9 +336,9 @@
           Endpoint: ['Dot', {radius: 11}],
           DragOptions: {cursor: 'pointer', zIndex: 5000},
           PaintStyle: {lineWidth: 5, stroke: '#808080'},
-          EndpointStyle: {radius: 9, fill: color, stroke: 'red'},
+          EndpointStyle: {radius: 9, fill: color, stroke: '#aaccdd00'},
           HoverPaintStyle: {stroke: '#445566', lineWidth: 4},
-          EndpointHoverStyle: {fill: '#445566', stroke: '#acd'},
+          EndpointHoverStyle: {fill: '#acd', stroke: '#acd'},
           deleteEndpointsOnDetach: false,
           ConnectionOverlays: [
             ['Arrow', {
@@ -374,20 +371,23 @@
           // declare some common values:
           const arrowCommon = {foldback: 0.7, width: 12};
           // use three-arg spec to create two different arrows with the common values:
-          const overlays = [
+          let overlays = [
             ['Arrow', {location: 0.7}, arrowCommon],
-            ['Label', {label: 'custom label', id: 'label'}],
+            ['Label', {label: '1', id: 'label-1', location: 0.1}],
+            ['Label', {label: 'N', id: 'label-n', location: 0.9}],
           ];
+          vm.overlay = overlays;
           // init point
           for (const point of vm.data.schemes) {
             $('.points').append(
               `<div id="${point.code}" class="point">
-              <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 12px;height: 20px;line-height: 20px">${point.name}</span><i class="delete-show el-icon-delete"></i></div>
+              <div style="padding:0.5em 0.5em; background: #acd; cursor: default; display: flex; justify-content: space-between"><p class="click-point">🖊</p><span class="name-change" style="font-size: 12px;">${point.name}</span><p class="delete-show">×</p></div>
               <div class="add-content"></div>
+              <!--<div style="display: flex; justify-content: start" class="operation"><span>添加字段</span><span>查看数据</span></div>-->
                </div>`,
             );
             for (const m of point.columns) {
-              $('#' + point.code).find('.add-content').append(`<div id="${point.code + '-' + m.code}" class="param-name" style="padding: 0 0.8em;border-top: 1px solid #cccccc; font-size: 12px">${m.name}</div>`);
+              $('#' + point.code).find('.add-content').append(`<div style="border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" id="${point.code + '-' + m.code}"><div class="param-name" style="font-size: 12px">${m.name}(${m.dataTypeText})</div><div><span style="cursor: pointer; margin-right: 10px">🖊</span><span style="cursor: pointer">×</span></div></div>`);
               vm.instance.addEndpoint(point.code + '-' + m.code, {
                 uuid: `${point.code + '-' + m.code}-left`,
                 anchor: 'Left',
@@ -402,7 +402,7 @@
                 uuid: `${point.code + '-' + m.code}-right`,
                 anchor: 'Right',
                 maxConnections: -1,
-                connectorStyle: { stroke: '#61B7CF' },
+                connectorStyle: {stroke: '#61B7CF'},
               }, {
                 isSource: true,
                 isTarget: true,
@@ -421,8 +421,11 @@
               }
             }
           })
-          $('.delete-show').bind('click', function () {
-            vm.deleteVisible = true;
+          // 删除Node
+          $('.delete-show').bind('click', function (e) {
+            if (confirm('确定删除该数据表吗')) {
+              vm.instance.remove(e.target.parentNode.parentNode.id);
+            }
           });
           // init transition
           for (const i of vm.data.relations) {
@@ -441,6 +444,25 @@
               continue;
             }
             const uuid = [i.parentEntityCode + '-' + i.parentRelationColumnCode + '-right', i.childEntityCode + '-' + i.childRelationColumnCode + '-left'];
+            if (i.cardinalType === 0) {
+              overlays = [
+                ['Arrow', {location: 0.7}, arrowCommon],
+                ['Label', {label: '1', id: 'label-1', location: 0.1}],
+                ['Label', {label: '1', id: 'label-n', location: 0.9}],
+              ];
+            } else if (i.cardinalType === 1) {
+              overlays = [
+                ['Arrow', {location: 0.7}, arrowCommon],
+                ['Label', {label: '1', id: 'label-1', location: 0.1}],
+                ['Label', {label: 'N', id: 'label-n', location: 0.9}],
+              ];
+            } else if (i.cardinalType === 2) {
+              overlays = [
+                ['Arrow', {location: 0.7}, arrowCommon],
+                ['Label', {label: 'N', id: 'label-1', location: 0.1}],
+                ['Label', {label: '1', id: 'label-n', location: 0.9}],
+              ];
+            }
             vm.instance.connect({
               uuids: uuid,
               overlays,

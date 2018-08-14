@@ -5,14 +5,14 @@
 
 /** ELEMENTS **/
 .points .point {
-	width:9em;
+	width:16em;
 	line-height:2em;
 }
 
 /** HOVER EFFECTS **/
 .points .point:hover, .points .point._jsPlumb_source_hover, .points .point._jsPlumb_target_hover {
-    border:1px solid #445566;
-    color: #445566;
+    border:1px solid #acd;
+    color: #000;
 }
 .click-point {
  cursor: pointer;
@@ -41,7 +41,7 @@
 }
 
 .point:hover {
-    border:1px solid #123456;
+    border:1px solid #acd;
     box-shadow: 2px 2px 19px #444;
     -o-box-shadow: 2px 2px 19px #444;
     -webkit-box-shadow: 2px 2px 19px #444;

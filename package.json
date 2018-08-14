@@ -9,10 +9,10 @@
     "build": "node build/build.js",
     "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "test": "npm run unit",
-    "lint": "eslint --ext .js,.vue src test/unit/specs"
+    "lint": "eslint --ext.js,.vue src test/unit/specs"
   },
   "dependencies": {
-    "element-ui": "^1.2.8",
+    "iview": "^3.0.0",
     "jquery": "^3.2.0",
     "jsplumb": "^2.7.15",
     "vue": "^2.2.2",
