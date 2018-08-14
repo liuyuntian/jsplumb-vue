@@ -1,9 +1,11 @@
 <template>
-  <div>
+  <div id="drawDiv" @mousemove="moveMouse($event)">
     <div>
-      <div style="padding: 10px 20px; text-align: center; background: #cccccc;color: #000;width: 100px; cursor: pointer" @mousedown="createDiv">表格</div>
+      <div style="padding: 10px 20px; text-align: center; background: #cccccc;color: #000;width: 100px; cursor: pointer"
+           @click="createDiv()">表格
+      </div>
     </div>
-    <div class="panel-body points demo flow_chart" id="points" @mouseup="mouse_up($event)">
+    <div class="panel-body points demo flow_chart" id="points">
     </div>
     <el-dialog
       title="修改表属性"
@@ -14,7 +16,7 @@
           <el-input v-model="tableForm.name"></el-input>
         </el-form-item>
         <el-form-item label="Code：">
-          <el-input v-model="tableForm.code"></el-input>
+          <el-input :disabled="newNodeEvent == null" v-model="tableForm.code"></el-input>
         </el-form-item>
         <div style="height: 50px">
           <el-button @click="addColumns" type="primary" style="float: right;font-size: 14px;"><i
@@ -40,7 +42,7 @@
         </div>
       </el-form>
       <span slot="footer" class="dialog-footer">
-    <el-button @click="dialogVisible = false">取 消</el-button>
+    <el-button @click="cancel">取 消</el-button>
     <el-button type="primary" @click="addParam">确 定</el-button>
   </span>
     </el-dialog>
@@ -71,7 +73,8 @@
     name: 'Index',
     data() {
       return {
-        newNodeEvent: {},
+        newElements: null,
+        newNodeEvent: null,
         isDragging: false,
         instance: {},
         currentTable: null,
@@ -84,32 +87,33 @@
         data: {
           schemes: [
             {
+              id: '8747b9d8-640e-4dcd-9bd2-f0caa26881c2',
               code: '58c21d713819d56d68763918',
               name: 'MoeLove',
               status: '0',
+              location: [80, 80],
             },
             {
+              id: '8747b9d8-640e-4dcd-9bd2-f0caa26881c3',
               code: '58c21d803819d56d68763919',
               name: 'Moe',
               status: '1',
+              location: [80, 200],
             },
             {
+              id: '8747b9d8-640e-4dcd-9bd2-f0caa26881c4',
               code: '58c21da83819d56d6876391a',
               name: 'Love',
               status: '0',
+              location: [80, 440],
             },
             {
+              id: '8747b9d8-640e-4dcd-9bd2-f0caa26881c6',
               code: '58c63ecf3819d5a22f2c7f24',
               name: 'TaoBeier',
               status: '1',
+              location: [400, 400],
             },
-          ],
-          location: [
-            ['Moe', 4, 14],
-            ['Love', 4, 24],
-            ['TaoBeier', 4, 34],
-            ['TaoBeier', 20, 24],
-            ['MoeLove', 4, 4],
           ],
           line: [
             ['58c21d713819d56d68763918', '58c21d803819d56d68763919'],
@@ -121,16 +125,25 @@
       };
     },
     methods: {
+      cancel() {
+        this.dialogVisible = false;
+      },
       newConfirm() {
         const vm = this;
+        for (const i of this.data.schemes) {
+          if (vm.tableForm.code === i.code) {
+            this.$message('表的Code不能重复！');
+            return;
+          }
+        }
         $('.points').append(
-          `<div id="${vm.tableForm.code}" class="point chart_act_">
+          `<div id="${vm.tableForm.code}" class="point">
               <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 14px;height: 20px;line-height: 20px">${vm.tableForm.name}</span><i class="delete-show el-icon-delete"></i></div>
               <div class="add-content"></div>
                </div>`,
         );
-        $('#' + vm.tableForm.code).css('left', vm.newNodeEvent.offsetX);
-        $('#' + vm.tableForm.code).css('top', vm.newNodeEvent.offsetY);
+        $('#' + vm.tableForm.code).css('left', 0);
+        $('#' + vm.tableForm.code).css('top', 0);
         $('.click-point').bind('click', function (e) {
           vm.dialogVisible = true;
           vm.currentTable = e.target.parentNode.parentNode.id;
@@ -150,7 +163,7 @@
             uuid: `${vm.currentTable + ' ' + i.code}-left`,
             anchor: 'Left',
             maxConnections: -1,
-            connectorStyle: { stroke: 'green' },
+            connectorStyle: {stroke: 'green'},
           }, {
             isSource: true,
             isTarget: true,
@@ -167,20 +180,26 @@
             dragAllowedWhenFull: true,
           });
         }
+        // 添加进数据
+        vm.data.schemes.push(vm.tableForm)
         vm.dialogVisible = false;
         vm.instance.draggable(`${vm.tableForm.code}`);
         vm.isDragging = false;
         vm.newNodeEvent = null;
-      },
-      mouse_up(event) {
-        const vm = this;
-        if (vm.isDragging === true) {
-          vm.dialogVisible = true;
-          vm.newNodeEvent = event;
-        }
+        vm.tableForm = {
+          columns: [],
+        };
       },
       createDiv() {
-        this.isDragging = true;
+        this.newNodeEvent = true;
+        this.dialogVisible = true;
+      },
+      moveMouse(event) {
+        if (this.isDragging === true) {
+          this.newElements.style.left = event.offsetX;
+          this.newElements.style.top = event.offsetY;
+          console.log(event.offsetX + ',' + event.offsetY);
+        }
       },
       addParam() {
         const vm = this;
@@ -196,7 +215,7 @@
               uuid: `${vm.currentTable + ' ' + i.code}-left`,
               anchor: 'Left',
               maxConnections: -1,
-              connectorStyle: { stroke: 'green' },
+              connectorStyle: {stroke: 'green'},
             }, {
               isSource: true,
               isTarget: true,
@@ -299,9 +318,9 @@
             ['Label', {label: 'custom label', id: 'label'}],
           ];
           // init point
-          for (const point of flowData.schemes) {
+          for (const point of vm.data.schemes) {
             $('.points').append(
-              `<div id="${point.code}" class="point chart_act_${point.status} ${point.name}">
+              `<div id="${point.code}" class="point">
               <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 14px;height: 20px;line-height: 20px">${point.name}</span><i class="delete-show el-icon-delete"></i></div>
               <div class="add-content"></div>
                </div>`,
@@ -310,7 +329,12 @@
           $('.click-point').bind('click', function (e) {
             vm.dialogVisible = true;
             vm.currentTable = e.target.parentNode.parentNode.id;
-            console.log(vm.currentTable);
+            for (const p of vm.data.schemes) {
+              if (p.code == e.target.parentNode.parentNode.id) {
+                vm.tableForm = p;
+                break;
+              }
+            }
           })
           $('.delete-show').bind('click', function () {
             vm.deleteVisible = true;
@@ -325,9 +349,9 @@
           }
 
           // init location
-          for (const i of flowData.location) {
-            $(`.${i[0]}`).css('left', i[1] * 20);
-            $(`.${i[0]}`).css('top', i[2] * 20);
+          for (const i of flowData.schemes) {
+            $('#' + i.code).css('left', i.location[0]);
+            $('#' + i.code).css('top', i.location[1]);
           }
 
           for (const point of flowData.schemes) {
