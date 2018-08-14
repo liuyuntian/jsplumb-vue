@@ -1,0 +1,331 @@
+{
+  "relations": [
+    {
+      "id": "6884777e-ce99-4e96-823f-8c3ee9635b10",
+      "code": "User_Role_rel",
+      "name": "用户角色关联表",
+      "cardinalType": 3,
+      "parentEntityCode": "User",
+      "parentRelationColumnCode": "UserId",
+      "childEntityCode": "Role",
+      "childRelationColumnCode": "RoleId",
+      "middleRelationEntityCode": "AbpUserRoles"
+    },
+    {
+      "id": "e41d86a1-15bd-403b-b4cc-8792cd39c12b",
+      "code": "Module_Role_rel",
+      "name": "模块角色关联表",
+      "cardinalType": 1,
+      "parentEntityCode": "Module",
+      "parentRelationColumnCode": "Id",
+      "childEntityCode": "Role",
+      "childRelationColumnCode": "ModuleId",
+      "middleRelationEntityCode": null
+    },
+    {
+      "id": "bcd9f154-70b2-4fe9-a12c-4c485fbd9405",
+      "code": "Module_Scheme_rel",
+      "name": "模块实体关联",
+      "cardinalType": 1,
+      "parentEntityCode": "Module",
+      "parentRelationColumnCode": "Id",
+      "childEntityCode": "Scheme",
+      "childRelationColumnCode": "ModuleId",
+      "middleRelationEntityCode": null
+    }
+  ],
+  "schemes": [
+    {
+      "id": "8747b9d8-640e-4dcd-9bd2-f0caa26881c2",
+      "name": "模块信息",
+      "code": "Module",
+      "status": 0,
+      "location": [
+        40,
+        40
+      ],
+      "columns": [
+        {
+          "id": "122cc285-40ab-4314-9e2a-ef3aa7d4f7f5",
+          "name": "模块编号",
+          "code": "Id",
+          "dataType": 8,
+          "dataTypeText": "Nvarchar",
+          "relationCode": null
+        },
+        {
+          "id": "122cc285-40ab-4314-9e2a-ef3aa7d4f7f5",
+          "name": "模块名",
+          "code": "Name",
+          "dataType": 6,
+          "dataTypeText": "Nvarchar",
+          "relationCode": null
+        },
+        {
+          "id": "ebf9324c-a822-4ace-a7c3-b116ca44669d",
+          "name": "模块角色",
+          "code": "Roles",
+          "dataType": 200,
+          "dataTypeText": "Array",
+          "relationCode": "Module_Role_rel"
+        },
+        {
+          "id": "6682e649-ac79-4920-ac71-684debfcad16",
+          "name": "模块实体",
+          "code": "Schemes",
+          "dataType": 200,
+          "dataTypeText": "Array",
+          "relationCode": "Module_Scheme_rel"
+        },
+        {
+          "id": "aba06db0-2533-4a58-ba22-1d67068cce4e",
+          "name": "状态",
+          "code": "Status",
+          "dataType": 0,
+          "dataTypeText": "Int",
+          "relationCode": null
+        }
+      ]
+    },
+    {
+      "id": "a1ed521a-725e-445b-8c59-92694bd6394e",
+      "name": "角色实体访问权",
+      "code": "RoleSchemePermiss",
+      "status": 0,
+      "location": [
+        40,
+        300
+      ],
+      "columns": [
+      ]
+    },
+    {
+      "id": "6884777e-ce99-4e96-823f-8c3ee9635b19",
+      "name": "用户信息",
+      "code": "User",
+      "location": [
+        500,
+        40
+      ],
+      "status": 0,
+      "columns": [
+        {
+          "id": "e86597f6-0966-4594-8e02-e22d0cb91965",
+          "name": "是否激活",
+          "code": "IsActive",
+          "dataType": 9,
+          "dataTypeText": "Bool",
+          "relationCode": null
+        },
+        {
+          "id": "a55e51f6-aedc-40c0-9630-adb74291bfa5",
+          "name": "用户Id",
+          "code": "Id",
+          "dataType": 8,
+          "dataTypeText": "Nvarchar",
+          "relationCode": null
+        },
+        {
+          "id": "a55e51f6-aedc-40c0-9630-adb74291bfa5",
+          "name": "用户名",
+          "code": "UserName",
+          "dataType": 6,
+          "dataTypeText": "Nvarchar",
+          "relationCode": null
+        },
+        {
+          "id": "6a77fe4a-65d5-4686-afcd-a166d4ea818c",
+          "name": "邮箱",
+          "code": "EmailAddress",
+          "dataType": 0,
+          "dataTypeText": "Int",
+          "relationCode": null
+        },
+        {
+          "id": "ed6b776a-3c90-48c3-b791-9bb4e4dead39",
+          "name": "用户角色",
+          "code": "Roles",
+          "dataType": 200,
+          "dataTypeText": "Array",
+          "relationCode": "User_Role_rel"
+        },
+        {
+          "id": "c8be5dc5-edd8-4d53-a117-4ff43db47273",
+          "name": "姓名",
+          "code": "Name",
+          "dataType": 0,
+          "dataTypeText": "Int",
+          "relationCode": null
+        },
+        {
+          "id": "a9805d87-a3c9-4117-81da-129b41438616",
+          "name": "创建时间",
+          "code": "CreationTime",
+          "dataType": 0,
+          "dataTypeText": "Int",
+          "relationCode": null
+        }
+      ]
+    },
+    {
+      "id": "ce982fda-d395-485c-8e73-77a56bced59b",
+      "name": "用户角色关联表",
+      "code": "AbpUserRoles",
+      "status": 0,
+      "location": [
+        500,
+        350
+      ],
+      "columns": [
+        {
+          "id": "9a0d4d40-144c-41ad-b45c-aeca99d626b5",
+          "name": "角色编号",
+          "code": "RoleId",
+          "dataType": 1,
+          "dataTypeText": "BigInt",
+          "relationCode": null
+        },
+        {
+          "id": "e609eb09-17ce-498c-a9e9-98228f0b9375",
+          "name": "用户编号",
+          "code": "UserId",
+          "dataType": 1,
+          "dataTypeText": "BigInt",
+          "relationCode": null
+        }
+      ]
+    },
+    {
+      "id": "133ed79c-a25c-47b4-a1cc-6baea8be1c8c",
+      "name": "角色信息",
+      "code": "Role",
+      "location": [
+        800,
+        80
+      ],
+      "status": 0,
+      "columns": [
+        {
+          "id": "776e354f-1210-4442-8ae0-6cba50e4dd39",
+          "name": "角色编码",
+          "code": "Name",
+          "dataType": 4,
+          "dataTypeText": "Varchar",
+          "relationCode": null
+        },
+        {
+          "id": "776e354f-1210-4442-8ae0-6cba50e4dd39",
+          "name": "角色id",
+          "code": "Id",
+          "dataType": 8,
+          "dataTypeText": "Varchar",
+          "relationCode": null
+        },
+        {
+          "id": "14fbe435-ed8e-4218-b679-4b1f6d49ddf2",
+          "name": "模块编号",
+          "code": "ModuleId",
+          "dataType": 8,
+          "dataTypeText": "Guid",
+          "relationCode": null
+        },
+        {
+          "id": "7c396267-17d8-4db9-a2f6-21ff61c4e2dd",
+          "name": "角色名",
+          "code": "DisplayName",
+          "dataType": 6,
+          "dataTypeText": "Nvarchar",
+          "relationCode": null
+        },
+        {
+          "id": "0fd821dd-ddb7-4b3a-a738-15c900970293",
+          "name": "所属模块",
+          "code": "Module",
+          "dataType": 100,
+          "dataTypeText": "Object",
+          "relationCode": "Module_Role_rel"
+        }
+      ]
+    },
+    {
+      "id": "f2f2bdba-4be7-4daa-9cdc-5db41e27f96a",
+      "name": "测试实体主表",
+      "code": "TestMain",
+      "status": 0,
+      "location": [
+        800,
+        400
+      ],
+      "columns": [
+        {
+          "id": "b9555554-349b-4bb0-a7b4-e7417b50aaa3",
+          "name": "姓名",
+          "code": "Name",
+          "dataType": 6,
+          "dataTypeText": "Nvarchar",
+          "relationCode": null
+        },
+        {
+          "id": "8c5bdbec-e1c3-4330-86c0-a846bb183942",
+          "name": "年龄",
+          "code": "Age",
+          "dataType": 0,
+          "dataTypeText": "Int",
+          "relationCode": null
+        },
+        {
+          "id": "73e73664-717f-4763-9291-83c23c939d8c",
+          "name": "生日",
+          "code": "Brithday",
+          "dataType": 10,
+          "dataTypeText": "Datetime",
+          "relationCode": null
+        },
+        {
+          "id": "468776d3-2660-4a59-8040-246015286bba",
+          "name": "爱好",
+          "code": "Join",
+          "dataType": 6,
+          "dataTypeText": "Nvarchar",
+          "relationCode": null
+        }
+      ]
+    },
+    {
+      "id": "e4754121-4f09-4bbe-bdc5-49c1618318bc",
+      "name": "测试实体子表",
+      "code": "TestSub",
+      "status": 0,
+      "location": [
+        1100,
+        40
+      ],
+      "columns": [
+        {
+          "id": "687ba487-938c-431e-9227-b8a373c1d0af",
+          "name": "所有者",
+          "code": "HonerId",
+          "dataType": 8,
+          "dataTypeText": "Guid",
+          "relationCode": null
+        },
+        {
+          "id": "6fc309e5-69d9-4841-81e0-90d7271cb93c",
+          "name": "银行名称",
+          "code": "BankName",
+          "dataType": 6,
+          "dataTypeText": "Nvarchar",
+          "relationCode": null
+        },
+        {
+          "id": "71841cd1-56ac-4eb3-8c4c-8023bc470a2e",
+          "name": "卡号",
+          "code": "CardNo",
+          "dataType": 4,
+          "dataTypeText": "Varchar",
+          "relationCode": null
+        }
+      ]
+    }
+  ]
+}

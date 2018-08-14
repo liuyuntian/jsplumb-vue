@@ -1,11 +1,11 @@
 <template>
-  <div id="drawDiv" @mousemove="moveMouse($event)">
+  <div id="drawDiv" @mousemove="moveMouse($event)" style="height: 100%;">
     <div>
       <div style="padding: 10px 20px; text-align: center; background: #cccccc;color: #000;width: 100px; cursor: pointer"
-           @click="createDiv()">表格
+           @click="createDiv()">新建表
       </div>
     </div>
-    <div class="panel-body points demo flow_chart" id="points">
+    <div class="panel-body points demo flow_chart" id="points" style="height: 80%;">
     </div>
     <el-dialog
       title="修改表属性"
@@ -31,8 +31,12 @@
           </el-form-item>
           <el-form-item label="类型">
             <el-select v-model="item.dataType" placeholder="请选择类型">
-              <el-option label="int" value="1"></el-option>
-              <el-option label="Array" value="2"></el-option>
+              <el-option
+                v-for="o in options"
+                :key="o.value"
+                :label="o.label"
+                :value="o.value">
+              </el-option>
             </el-select>
           </el-form-item>
           <div style="height: 50px">
@@ -64,6 +68,7 @@
   import $ from 'jquery';
   import ElIcon from '../../node_modules/element-ui/packages/icon/src/icon';
   import MyMenu from '../views/Other';
+  import myData from '../assets/data.json';
 
   require('../assets/css/demo.css');
   require('../assets/css/jsplumb.css');
@@ -73,6 +78,58 @@
     name: 'Index',
     data() {
       return {
+        options: [{
+          value: 0,
+          label: 'Int',
+        }, {
+          value: 1,
+          label: 'BigInt',
+        }, {
+          value: 2,
+          label: 'TinyInt',
+        }, {
+          value: 3,
+          label: 'Money',
+        }, {
+          value: 4,
+          label: 'Varchar',
+        }, {
+          value: 5,
+          label: 'VarcharMax',
+        }, {
+          value: 6,
+          label: 'Nvarchar',
+        }, {
+          value: 7,
+          label: 'NvarcharMax',
+        }, {
+          value: 8,
+          label: 'Guid',
+        }, {
+          value: 9,
+          label: 'Bool',
+        }, {
+          value: 10,
+          label: 'DateTime',
+        }, {
+          value: 11,
+          label: 'DateTime2',
+        }, {
+          value: 12,
+          label: 'Decimal',
+        }, {
+          value: 50,
+          label: 'Computed',
+        }, {
+          value: 80,
+          label: 'Function',
+        }, {
+          value: 100,
+          label: 'Object',
+        }, {
+          value: 200,
+          label: 'Array',
+        }],
         newElements: null,
         newNodeEvent: null,
         isDragging: false,
@@ -81,6 +138,7 @@
         tableForm: {
           columns: [],
         },
+        currentItem: 0,
         currentInput: null,
         deleteVisible: false,
         dialogVisible: false,
@@ -124,6 +182,9 @@
         },
       };
     },
+    created() {
+      this.data = myData;
+    },
     methods: {
       cancel() {
         this.dialogVisible = false;
@@ -138,7 +199,7 @@
         }
         $('.points').append(
           `<div id="${vm.tableForm.code}" class="point">
-              <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 14px;height: 20px;line-height: 20px">${vm.tableForm.name}</span><i class="delete-show el-icon-delete"></i></div>
+              <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 12px;height: 20px;line-height: 20px">${vm.tableForm.name}</span><i class="delete-show el-icon-delete"></i></div>
               <div class="add-content"></div>
                </div>`,
         );
@@ -321,17 +382,41 @@
           for (const point of vm.data.schemes) {
             $('.points').append(
               `<div id="${point.code}" class="point">
-              <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 14px;height: 20px;line-height: 20px">${point.name}</span><i class="delete-show el-icon-delete"></i></div>
+              <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 12px;height: 20px;line-height: 20px">${point.name}</span><i class="delete-show el-icon-delete"></i></div>
               <div class="add-content"></div>
                </div>`,
             );
+            for (const m of point.columns) {
+              $('#' + point.code).find('.add-content').append(`<div id="${point.code + '-' + m.code}" class="param-name" style="padding: 0 0.8em;border-top: 1px solid #cccccc; font-size: 12px">${m.name}</div>`);
+              vm.instance.addEndpoint(point.code + '-' + m.code, {
+                uuid: `${point.code + '-' + m.code}-left`,
+                anchor: 'Left',
+                maxConnections: -1,
+                connectorStyle: {stroke: '#61B7CF'},
+              }, {
+                isSource: true,
+                isTarget: true,
+                dragAllowedWhenFull: true,
+              });
+              vm.instance.addEndpoint(point.code + '-' + m.code, {
+                uuid: `${point.code + '-' + m.code}-right`,
+                anchor: 'Right',
+                maxConnections: -1,
+                connectorStyle: { stroke: '#61B7CF' },
+              }, {
+                isSource: true,
+                isTarget: true,
+                dragAllowedWhenFull: true,
+              });
+            }
           }
           $('.click-point').bind('click', function (e) {
             vm.dialogVisible = true;
             vm.currentTable = e.target.parentNode.parentNode.id;
-            for (const p of vm.data.schemes) {
-              if (p.code == e.target.parentNode.parentNode.id) {
-                vm.tableForm = p;
+            for (var k = 0; k < vm.data.schemes.length; k++) {
+              if (vm.data.schemes[k].code == e.target.parentNode.parentNode.id) {
+                vm.currentItem = k;
+                vm.tableForm = vm.data.schemes[vm.currentItem];
                 break;
               }
             }
@@ -340,14 +425,27 @@
             vm.deleteVisible = true;
           });
           // init transition
-          for (const i of flowData.line) {
-            const uuid = [`${i[0]}-bottom`, `${i[1]}-top`];
+          for (const i of vm.data.relations) {
+            // 有关系表
+            if (i.middleRelationEntityCode !== null) {
+              const uuid = [i.parentEntityCode + '-' + 'Id' + '-right', i.middleRelationEntityCode + '-' + i.parentRelationColumnCode + '-left'];
+              vm.instance.connect({
+                uuids: uuid,
+                overlays,
+              });
+              const uuid1 = [i.middleRelationEntityCode + '-' + i.childRelationColumnCode + '-right', i.childEntityCode + '-' + 'Id' + '-left'];
+              vm.instance.connect({
+                uuids: uuid1,
+                overlays,
+              });
+              continue;
+            }
+            const uuid = [i.parentEntityCode + '-' + i.parentRelationColumnCode + '-right', i.childEntityCode + '-' + i.childRelationColumnCode + '-left'];
             vm.instance.connect({
               uuids: uuid,
               overlays,
             });
           }
-
           // init location
           for (const i of flowData.schemes) {
             $('#' + i.code).css('left', i.location[0]);
@@ -367,7 +465,6 @@
       },
     },
     mounted() {
-      const vm = this;
       jsPlumb.ready(() => {
         this.createFlow(this.data);
       });
