@@ -2,7 +2,7 @@
   <div id="drawDiv" @mousemove="moveMouse($event)" style="height: 100%;">
     <div>
       <div style="padding: 10px 20px; text-align: center; background: #cccccc;color: #000;width: 100px; cursor: pointer"
-           @click="createDiv">新建表
+           @click="refresh">新建表
       </div>
     </div>
     <div class="panel-body points demo flow_chart" id="points" style="height: 80%;">
@@ -19,22 +19,23 @@
         </FormItem>
       </Form>
       <Form ref="form" :model="currentParam">
-          <FormItem label="字段名：">
-            <Input v-model="currentParam.name"></Input>
-          </FormItem>
-          <FormItem label="code：">
-            <Input v-model="currentParam.code"></Input>
-          </FormItem>
-          <FormItem label="类型：">
-            <Select v-model="currentParam.dataType" label-in-value="true" placeholder="请选择类型" @on-change="getSelectedValue">
-              <Option
-                v-for="o in options"
-                :key="o.value"
-                :label="o.label"
-                :value="o.value">
-              </Option>
-            </Select>
-          </FormItem>
+        <FormItem label="字段名：">
+          <Input v-model="currentParam.name"></Input>
+        </FormItem>
+        <FormItem label="code：">
+          <Input v-model="currentParam.code"></Input>
+        </FormItem>
+        <FormItem label="类型：">
+          <Select v-model="currentParam.dataType" label-in-value="true" placeholder="请选择类型"
+                  @on-change="getSelectedValue">
+            <Option
+              v-for="o in options"
+              :key="o.value"
+              :label="o.label"
+              :value="o.value">
+            </Option>
+          </Select>
+        </FormItem>
       </Form>
       <span slot="footer" class="dialog-footer">
     <Button @click="cancel">取 消</Button>
@@ -65,8 +66,6 @@
 <script>
   import $ from 'jquery';
   import myData from '../assets/data.json';
-
-  require('iview/dist/styles/iview.css');
   require('../assets/css/demo.css');
   require('../assets/css/jsplumb.css');
 
@@ -151,44 +150,7 @@
         currentInput: null,
         editVisible: false,
         dialogVisible: false,
-        data: {
-          schemes: [
-            {
-              id: '8747b9d8-640e-4dcd-9bd2-f0caa26881c2',
-              code: '58c21d713819d56d68763918',
-              name: 'MoeLove',
-              status: '0',
-              location: [80, 80],
-            },
-            {
-              id: '8747b9d8-640e-4dcd-9bd2-f0caa26881c3',
-              code: '58c21d803819d56d68763919',
-              name: 'Moe',
-              status: '1',
-              location: [80, 200],
-            },
-            {
-              id: '8747b9d8-640e-4dcd-9bd2-f0caa26881c4',
-              code: '58c21da83819d56d6876391a',
-              name: 'Love',
-              status: '0',
-              location: [80, 440],
-            },
-            {
-              id: '8747b9d8-640e-4dcd-9bd2-f0caa26881c6',
-              code: '58c63ecf3819d5a22f2c7f24',
-              name: 'TaoBeier',
-              status: '1',
-              location: [400, 400],
-            },
-          ],
-          line: [
-            ['58c21d713819d56d68763918', '58c21d803819d56d68763919'],
-            ['58c21d803819d56d68763919', '58c21da83819d56d6876391a'],
-            ['58c21d803819d56d68763919', '58c63ecf3819d5a22f2c7f24'],
-            ['58c21da83819d56d6876391a', '58c63ecf3819d5a22f2c7f24'],
-          ],
-        },
+        data: {},
       };
     },
     created() {
@@ -203,7 +165,7 @@
         this.data.schemes[this.currentItem].columns[this.currentParamIndex] = this.currentParam;
         $('#' + this.data.schemes[this.currentItem].code + '-' + this.data.schemes[this.currentItem].columns[this.currentParamIndex].code).find('.param-name').html(this.currentParam.name + '(' + this.currentParam.dataTypeText + ')');
         this.dialogVisible = false;
-        },
+      },
       editCancel() {
         this.editVisible = false;
         this.tableForm = {};
@@ -365,8 +327,8 @@
       createFlow(flowData) {
         var vm = this;
         console.log('Index created');
-        const color = '#aaccdd00';
-        vm.instance = jsPlumb.getInstance({
+        const color = '#aaccdd';
+       window.s = vm.instance = jsPlumb.getInstance({
           // notice the 'curviness' argument to this Bezier curve.
           // the curves on this page are far smoother
           // than the curves on the first demo, which use the default curviness value.
@@ -374,7 +336,7 @@
           Endpoint: ['Dot', {radius: 11}],
           DragOptions: {cursor: 'pointer', zIndex: 5000},
           PaintStyle: {lineWidth: 5, stroke: '#808080'},
-          EndpointStyle: {radius: 9, fill: color, stroke: '#aaccdd00'},
+          EndpointStyle: {radius: 9, fill: color, stroke: '#aaccdd'},
           HoverPaintStyle: {stroke: '#445566', lineWidth: 4},
           EndpointHoverStyle: {fill: '#acd', stroke: '#acd'},
           deleteEndpointsOnDetach: false,
@@ -436,23 +398,23 @@
                 isTarget: true,
                 dragAllowedWhenFull: true,
               });
-              vm.instance.addEndpoint(point.code + '-' + m.code, {
-                uuid: `${point.code + '-' + m.code}-right`,
-                anchor: 'Right',
-                maxConnections: -1,
-                connectorStyle: {stroke: '#61B7CF'},
-              }, {
-                isSource: true,
-                isTarget: true,
-                dragAllowedWhenFull: true,
-              });
+             vm.instance.addEndpoint(point.code + '-' + m.code, {
+               uuid: `${point.code + '-' + m.code}-right`,
+               anchor: 'Right',
+               maxConnections: -1,
+               connectorStyle: {stroke: '#61B7CF'},
+             }, {
+               isSource: true,
+               isTarget: true,
+               dragAllowedWhenFull: true,
+             });
             }
           }
           // 编辑表格名称
           $('.click-point').bind('click', function (e) {
             vm.editVisible = true;
             vm.currentTable = e.target.parentNode.parentNode.id;
-            for (var k = 0; k < vm.data.schemes.length; k++) {
+            for (let k = 0; k < vm.data.schemes.length; k++) {
               if (vm.data.schemes[k].code == e.target.parentNode.parentNode.id) {
                 vm.currentItem = k;
                 vm.tableForm = {...vm.data.schemes[vm.currentItem]};
@@ -474,11 +436,11 @@
             for (let n = 0; n < vm.data.schemes.length; n++) {
               if (vm.data.schemes[n].code == tableCode) {
                 vm.currentItem = n;
-                vm.tableForm = { ...vm.data.schemes[n] };
-                for (let q = 0; q <  vm.data.schemes[n].columns.length; q++) {
+                vm.tableForm = {...vm.data.schemes[n]};
+                for (let q = 0; q < vm.data.schemes[n].columns.length; q++) {
                   if (vm.data.schemes[n].columns[q].code == paramCode) {
-                    vm.currentParam = { ...vm.data.schemes[n].columns[q] };
-                    vm.lastParam = { ...vm.data.schemes[n].columns[q] };
+                    vm.currentParam = {...vm.data.schemes[n].columns[q]};
+                    vm.lastParam = {...vm.data.schemes[n].columns[q]};
                     vm.currentParamIndex = q;
                     break;
                   }
@@ -488,6 +450,103 @@
             vm.dialogVisible = true;
           });
           // init transition
+         for (const i of vm.data.relations) {
+           // 有关系表
+           if (i.middleRelationEntityCode !== null) {
+             const uuid = [i.parentEntityCode + '-' + 'Id' + '-right', i.middleRelationEntityCode + '-' + i.parentRelationColumnCode + '-left'];
+             vm.instance.connect({
+               uuids: uuid,
+               overlays,
+             });
+             const uuid1 = [i.middleRelationEntityCode + '-' + i.childRelationColumnCode + '-right', i.childEntityCode + '-' + 'Id' + '-left'];
+             vm.instance.connect({
+               uuids: uuid1,
+               overlays,
+             });
+             continue;
+           }
+           const uuid = [i.parentEntityCode + '-' + i.parentRelationColumnCode + '-right', i.childEntityCode + '-' + i.childRelationColumnCode + '-left'];
+           if (i.cardinalType === 0) {
+             overlays = [
+               ['Arrow', {location: 0.7}, arrowCommon],
+               ['Label', {label: '1', id: 'label-1', location: 0.1}],
+               ['Label', {label: '1', id: 'label-n', location: 0.9}],
+             ];
+           } else if (i.cardinalType === 1) {
+             overlays = [
+               ['Arrow', {location: 0.7}, arrowCommon],
+               ['Label', {label: '1', id: 'label-1', location: 0.1}],
+               ['Label', {label: 'N', id: 'label-n', location: 0.9}],
+             ];
+           } else if (i.cardinalType === 2) {
+             overlays = [
+               ['Arrow', {location: 0.7}, arrowCommon],
+               ['Label', {label: 'N', id: 'label-1', location: 0.1}],
+               ['Label', {label: '1', id: 'label-n', location: 0.9}],
+             ];
+           }
+           vm.instance.connect({
+             uuids: uuid,
+             overlays,
+           });
+         }
+          // init location
+          for (const i of flowData.schemes) {
+            $('#' + i.code).css('left', i.location[0]);
+            $('#' + i.code).css('top', i.location[1]);
+          }
+
+          for (const point of flowData.schemes) {
+            vm.instance.draggable(`${point.code}`);
+          }
+          vm.instance.bind('click', function (conn, originalEvent) {
+            if (confirm('确定删除所点击的链接吗？')) {
+             vm.instance.deleteConnection(conn);
+             vm.refresh()
+            }
+          });
+        });
+       vm.instance.fire('jsPlumbDemoLoaded', vm.instance);
+      },
+      refresh() {
+        let vm = this;
+        const arrowCommon = {foldback: 0.7, width: 12};
+        // use three-arg spec to create two different arrows with the common values:
+        let overlays = [
+          ['Arrow', {location: 0.7}, arrowCommon],
+          ['Label', {label: '1', id: 'label-1', location: 0.1}],
+          ['Label', {label: 'N', id: 'label-n', location: 0.9}],
+        ];
+       vm.instance.clearParent();
+        vm.instance.deleteEveryConnection();
+        vm.instance.deleteEveryEndpoint();
+        vm.instance.batch(function () {
+          for (const point of vm.data.schemes) {
+            for (const m of point.columns) {
+              vm.instance.addEndpoint(point.code + '-' + m.code, {
+                uuid: `${point.code + '-' + m.code}-left`,
+                anchor: 'Left',
+                maxConnections: -1,
+                connectorStyle: {stroke: '#61B7CF'},
+              }, {
+                isSource: true,
+                isTarget: true,
+                dragAllowedWhenFull: true,
+              });
+              vm.instance.addEndpoint(point.code + '-' + m.code, {
+                uuid: `${point.code + '-' + m.code}-right`,
+                anchor: 'Right',
+                maxConnections: -1,
+                connectorStyle: {stroke: '#61B7CF'},
+              }, {
+                isSource: true,
+                isTarget: true,
+                dragAllowedWhenFull: true,
+              });
+//              vm.instance.draggable(`${point.code + '-' + m.code}-left`);
+//              vm.instance.draggable(`${point.code + '-' + m.code}-right`);
+            }
+          }
           for (const i of vm.data.relations) {
             // 有关系表
             if (i.middleRelationEntityCode !== null) {
@@ -528,23 +587,25 @@
               overlays,
             });
           }
-          // init location
-          for (const i of flowData.schemes) {
-            $('#' + i.code).css('left', i.location[0]);
-            $('#' + i.code).css('top', i.location[1]);
-          }
+        })
+        // init location
+//        for (const i of flowData.schemes) {
+//          $('#' + i.code).css('left', i.location[0]);
+//          $('#' + i.code).css('top', i.location[1]);
+//        }
 
-          for (const point of flowData.schemes) {
-            vm.instance.draggable(`${point.code}`);
-          }
-          vm.instance.bind('click', function (conn, originalEvent) {
-            if (confirm('确定删除所点击的链接吗？')) {
-              vm.instance.deleteConnection(conn);
-            }
-          });
-        });
-        vm.instance.fire('jsPlumbDemoLoaded', vm.instance);
-      },
+        for (const point of vm.data.schemes) {
+            // _katavorioDrag
+          document.getElementById(point.code)._katavorioDrag = null
+          vm.instance.draggable(`${point.code}`);
+        }
+//        vm.instance.bind('click', function (conn, originalEvent) {
+//          if (confirm('确定删除所点击的链接吗？')) {
+//            vm.instance.deleteConnection(conn);
+////              vm.refresh()
+//          }
+//        });
+      }
     },
     mounted() {
       jsPlumb.ready(() => {
