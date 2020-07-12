@@ -2,8 +2,9 @@
   <div id="drawDiv" @mousemove="moveMouse($event)" style="height: 100%;">
     <div>
       <div style="padding: 10px 20px; text-align: center; background: #cccccc;color: #000;width: 100px; cursor: pointer"
-           @click="refresh">新建表
+           @click="refresh">恢复默认
       </div>
+      <Button @click="createDiv">新建</Button>
     </div>
     <div class="panel-body points demo flow_chart" id="points" style="height: 80%;">
     </div>
@@ -66,6 +67,8 @@
 <script>
   import $ from 'jquery';
   import myData from '../assets/data.json';
+
+  require('iview/dist/styles/iview.css');
   require('../assets/css/demo.css');
   require('../assets/css/jsplumb.css');
 
@@ -290,21 +293,21 @@
               dragAllowedWhenFull: true,
             });
           }
-          // for (const i of vm.data.line) {
-          //   if (i[0] === vm.currentTable) {
-          //     const uuid = [`${i[0]}-bottom`, `${i[1]}-top`];
-          //     vm.instance.connect({
-          //       uuids: uuid,
-          //       overlays,
-          //     });
-          //   } else if (i[1] === vm.currentTable) {
-          //     const uuid = [`${i[0]}-bottom`, `${i[1]}-top`];
-          //     vm.instance.connect({
-          //       uuids: uuid,
-          //       overlays,
-          //     });
-          //   }
-          // }
+          for (const i of vm.data.line) {
+            if (i[0] === vm.currentTable) {
+              const uuid = [`${i[0]}-bottom`, `${i[1]}-top`];
+              vm.instance.connect({
+                uuids: uuid,
+                overlays,
+              });
+            } else if (i[1] === vm.currentTable) {
+              const uuid = [`${i[0]}-bottom`, `${i[1]}-top`];
+              vm.instance.connect({
+                uuids: uuid,
+                overlays,
+              });
+            }
+          }
         } else {
           vm.newConfirm();
         }
