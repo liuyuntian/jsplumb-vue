@@ -66,7 +66,7 @@
 
 <script>
   import $ from 'jquery';
-  import myData from '../assets/data.json';
+  import myData from '../assets/data1.js';
 
   require('iview/dist/styles/iview.css');
   require('../assets/css/demo.css');
@@ -329,7 +329,6 @@
       },
       createFlow(flowData) {
         var vm = this;
-        console.log('Index created');
         const color = '#aaccdd';
        window.s = vm.instance = jsPlumb.getInstance({
           // notice the 'curviness' argument to this Bezier curve.
@@ -381,18 +380,18 @@
           ];
           vm.overlay = overlays;
           // init point
-          for (const point of vm.data.schemes) {
+          for (const point in vm.data.formMap) {
             $('.points').append(
-              `<div id="${point.code}" class="point">
-              <div style="padding:0.5em 0.5em; background: #acd; cursor: default; display: flex; justify-content: space-between"><i class="click-point">❗</i><span class="name-change" style="font-size: 12px;">${point.name}</span><i class="delete-show ios-close">×</i></div>
+              `<div id="${point}" class="point">
+              <div style="padding:0.5em 0.5em; background: #acd; cursor: default; display: flex; justify-content: space-between"><i class="click-point">❗</i><span class="name-change" style="font-size: 12px;">${vm.data.formMap[point].name}</span><i class="delete-show ios-close">×</i></div>
               <div class="add-content"></div>
-              <!--<div style="display: flex; justify-content: start" class="operation"><span>添加字段</span><span>查看数据</span></div>-->
+              <div style="display: flex; justify-content: start" class="operation"><span>添加字段</span><span>查看数据</span></div>
                </div>`,
             );
-            for (const m of point.columns) {
-              $('#' + point.code).find('.add-content').append(`<div style="border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" id="${point.code + '-' + m.code}"><div class="param-name" style="font-size: 12px">${m.name}(${m.dataTypeText})</div><div><span class="edit-row" style="cursor: pointer; margin-right: 10px">✏</span><span class="delete-row" style="cursor: pointer">×</span></div></div>`);
-              vm.instance.addEndpoint(point.code + '-' + m.code, {
-                uuid: `${point.code + '-' + m.code}-left`,
+            for (const m of vm.data.formMap[point].fieldMap) {
+              $('#' + point).find('.add-content').append(`<div style="border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" id="${point + '-' + m}"><div class="param-name" style="font-size: 12px">${vm.data.formMap[point].fieldMap[m].name}</div><div><span class="edit-row" style="cursor: pointer; margin-right: 10px">✏</span><span class="delete-row" style="cursor: pointer">×</span></div></div>`);
+              vm.instance.addEndpoint(point + '-' + m, {
+                uuid: `${point + '-' + m}-left`,
                 anchor: 'Left',
                 maxConnections: -1,
                 connectorStyle: {stroke: '#61B7CF'},
@@ -401,8 +400,8 @@
                 isTarget: true,
                 dragAllowedWhenFull: true,
               });
-             vm.instance.addEndpoint(point.code + '-' + m.code, {
-               uuid: `${point.code + '-' + m.code}-right`,
+             vm.instance.addEndpoint(point + '-' + m, {
+               uuid: `${point + '-' + m}-right`,
                anchor: 'Right',
                maxConnections: -1,
                connectorStyle: {stroke: '#61B7CF'},
@@ -417,14 +416,15 @@
           $('.click-point').bind('click', function (e) {
             vm.editVisible = true;
             vm.currentTable = e.target.parentNode.parentNode.id;
-            for (let k = 0; k < vm.data.schemes.length; k++) {
-              if (vm.data.schemes[k].code == e.target.parentNode.parentNode.id) {
-                vm.currentItem = k;
-                vm.tableForm = {...vm.data.schemes[vm.currentItem]};
+            let index = 0;
+            for (const k in vm.data.formMap) {
+              if (k == e.target.parentNode.parentNode.id) {
+                vm.currentItem = index
+                vm.tableForm = {...vm.data.formMap[k]};
                 break;
               }
+              index++;
             }
-            console.log(vm.data.schemes);
           })
           // 删除Node
           $('.delete-show').bind('click', function (e) {
@@ -436,19 +436,23 @@
           $('.edit-row').bind('click', function (e) {
             let tableCode = e.target.parentNode.parentNode.id.split('-')[0];
             let paramCode = e.target.parentNode.parentNode.id.split('-')[1];
-            for (let n = 0; n < vm.data.schemes.length; n++) {
-              if (vm.data.schemes[n].code == tableCode) {
-                vm.currentItem = n;
-                vm.tableForm = {...vm.data.schemes[n]};
-                for (let q = 0; q < vm.data.schemes[n].columns.length; q++) {
-                  if (vm.data.schemes[n].columns[q].code == paramCode) {
-                    vm.currentParam = {...vm.data.schemes[n].columns[q]};
-                    vm.lastParam = {...vm.data.schemes[n].columns[q]};
-                    vm.currentParamIndex = q;
+            let index = 0
+            for (const n in vm.data.formMap) {
+              if (n == tableCode) {
+                vm.currentItem = index;
+                vm.tableForm = {...n};
+                let index1 = 0;
+                for (const q in vm.data.formMap[n].fieldMap) {
+                  if (q == paramCode) {
+                    vm.currentParam = {...vm.data.formMap[n].fieldMap[q]};
+                    vm.lastParam = {...vm.data.formMap[n].fieldMap[q]};
+                    vm.currentParamIndex = index1;
                     break;
                   }
+                  index1++;
                 }
               }
+              index++;
             }
             vm.dialogVisible = true;
           });
@@ -494,13 +498,13 @@
            });
          }
           // init location
-          for (const i of flowData.schemes) {
-            $('#' + i.code).css('left', i.location[0]);
-            $('#' + i.code).css('top', i.location[1]);
+          for (const i in flowData.formMap) {
+            $('#' + i).css('left', flowData.formMap[i].x);
+            $('#' + i).css('top', flowData.formMap[i].y);
           }
 
-          for (const point of flowData.schemes) {
-            vm.instance.draggable(`${point.code}`);
+          for (const point in flowData.formMap) {
+            vm.instance.draggable(`${point}`);
           }
           vm.instance.bind('click', function (conn, originalEvent) {
             if (confirm('确定删除所点击的链接吗？')) {
