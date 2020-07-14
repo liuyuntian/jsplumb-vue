@@ -2,14 +2,14 @@ export default {
   formIds:[],//表单的id列表
   formMap:{ //以表单的id作为key的表单Map结构
     1:{
-      x:10,//表单的x位置
-      y:10,//表单的y位置
+      x:100,//表单的x位置
+      y:100,//表单的y位置
       fieldIds:[1, 2],//字段id列表
       fieldMap:{//以字段id为key的字段map
         1:{
           id:1, //字段id
           bizId:'column1',//业务id，表字段名
-          name:'第一列',//字段中文名
+          name:'表一第一列',//字段中文名
           otherAttrs:{ //其它属性中
             targetLines:[{ // 连线都放到起点节点上，数组json结构存储,目标节点连线,支持多个
               lineId:'1_1_2_2_1',// 联系id规则 ${formId}_${fieldId}_${targetFormId}_${targetFieldId}_${lineType};
@@ -20,22 +20,21 @@ export default {
               fieldId:1,//本表字段id
               targetFormId:2,//目标表单id
               targetFieldId:2,//目标字段id
-
             }],
           }
         },
         2:{
           id:1, //字段id
-          bizId:'column1',//业务id，表字段名
-          name:'第二列',//字段中文名
+          bizId:'column2',//业务id，表字段名
+          name:'表一第二列',//字段中文名
           otherAttrs:{ //其它属性中
           }
         },
       },
     },
     2:{
-      x:50,//表单的x位置
-      y:50,//表单的y位置
+      x:500,//表单的x位置
+      y:250,//表单的y位置
       fieldIds:[1, 2],//字段id列表
       fieldMap:{//以字段id为key的字段map
         1:{
@@ -46,7 +45,7 @@ export default {
         },
         2:{
           id:1, //字段id
-          bizId:'column1',//业务id，表字段名
+          bizId:'column2',//业务id，表字段名
           name:'第二表第二列',//字段中文名
           otherAttrs:{ //其它属性中
           }
