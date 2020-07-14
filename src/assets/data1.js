@@ -2,6 +2,7 @@ export default {
   formIds:[],//表单的id列表
   formMap:{ //以表单的id作为key的表单Map结构
     1:{
+      name: '表单一',
       x:100,//表单的x位置
       y:100,//表单的y位置
       fieldIds:[1, 2],//字段id列表
@@ -33,6 +34,7 @@ export default {
       },
     },
     2:{
+      name: '表单二',
       x:500,//表单的x位置
       y:250,//表单的y位置
       fieldIds:[1, 2],//字段id列表

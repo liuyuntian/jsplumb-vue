@@ -7,7 +7,13 @@
             <el-button @click="createDiv">新建</el-button>
         </div>
         <div class="panel-body points demo flow_chart" id="points" style="height: 80%;">
-
+          <div v-for="(val, point) in data.formMap" :id="point" class="point" :style="{left: val.x + 'px', top: val.y + 'px'}">
+            <div style="padding:0 0.5em; background: #409EFF; cursor: default; display: flex; justify-content: space-between"><span @click="editTable" class="click-point">⚙</span><span class="name-change" style="font-size: 12px;">{{val.name}}</span><i class="delete-show ios-close">×</i></div>
+            <div class="add-content">
+              <div v-for="(val1, m) in val.fieldMap" style="color:black; border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" :id="point + '-' + m"><div class="param-name" style="font-size: 12px">{{val1.name}}</div><div><span class="edit-row" style="cursor: pointer; margin-right: 10px">✏</span><span class="delete-row" style="cursor: pointer">×</span></div></div>
+            </div>
+            <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between" class="operation"></div>
+          </div>
         </div>
         <el-dialog
                 title="修改表属性"
@@ -326,8 +332,22 @@
       deleteColumns(index){
         this.tableForm.columns.splice(index, 1);
       },
+      editTable(e) {
+        let vm = this;
+        vm.editVisible = true;
+        vm.currentTable = e.target.parentNode.parentNode.id;
+        let index = 0;
+        for (const k in vm.data.formMap){
+          if (k == e.target.parentNode.parentNode.id){
+            vm.currentItem = index
+            vm.tableForm = { ...vm.data.formMap[k] };
+            break;
+          }
+          index++;
+        }
+      },
       createFlow(){
-        var vm = this;
+        let vm = this;
         const color = '#409EFF';
         window.s = vm.instance = jsPlumb.getInstance({
           // notice the 'curviness' argument to this Bezier curve.
@@ -373,21 +393,11 @@
           const arrowCommon = { foldback: 0.7, width: 12 };
           // use three-arg spec to create two different arrows with the common values:
           let overlays = [
-            ['Arrow', { location: 0.7 }, arrowCommon],
-            ['Label', { label: '1', id: 'label-1', location: 0.1 }],
-            ['Label', { label: 'N', id: 'label-n', location: 0.9 }],
+            ['Arrow', { location: 0.7 }, arrowCommon]
           ];
           // init point
           for (const point in vm.data.formMap){
-            $('.points').append(
-              `<div id="${point}" class="point">
-              <div style="padding:0 0.5em; background: #409EFF; cursor: default; display: flex; justify-content: space-between"><span class="click-point">⚙</span><span class="name-change" style="font-size: 12px;">${point}</span><i class="delete-show ios-close">×</i></div>
-              <div class="add-content"></div>
-              <div style="padding:0.5em 0.5em; display: flex; justify-content: space-between" class="operation"></div>
-               </div>`,
-            );
             for (const m in vm.data.formMap[point].fieldMap){
-              $('#' + point).find('.add-content').append(`<div style="color:black; border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" id="${point + '-' + m}"><div class="param-name" style="font-size: 12px">${vm.data.formMap[point].fieldMap[m].name}</div><div><span class="edit-row" style="cursor: pointer; margin-right: 10px">✏</span><span class="delete-row" style="cursor: pointer">×</span></div></div>`);
               vm.instance.addEndpoint(point + '-' + m, {
                 uuid: `${point + '-' + m}-left`,
                 anchor: 'Left',
@@ -409,24 +419,8 @@
                 dragAllowedWhenFull: true,
               });
             }
-            $('#' + point).css('left', vm.data.formMap[point].x);
-            $('#' + point).css('top', vm.data.formMap[point].y);
             vm.instance.draggable(`${point}`);
           }
-          // 编辑表格名称
-          $('.click-point').bind('click', function (e){
-            vm.editVisible = true;
-            vm.currentTable = e.target.parentNode.parentNode.id;
-            let index = 0;
-            for (const k in vm.data.formMap){
-              if (k == e.target.parentNode.parentNode.id){
-                vm.currentItem = index
-                vm.tableForm = { ...vm.data.formMap[k] };
-                break;
-              }
-              index++;
-            }
-          });
           // 删除Node
           $('.delete-show').bind('click', function (e){
             if (confirm('确定删除该数据表吗')){
@@ -472,30 +466,6 @@
                 }
               }
             }
-            // const uuid = [i.parentEntityCode + '-' + i.parentRelationColumnCode + '-right', i.childEntityCode + '-' + i.childRelationColumnCode + '-left'];
-            // if (i.cardinalType === 0) {
-            //   overlays = [
-            //     ['Arrow', {location: 0.7}, arrowCommon],
-            //     ['Label', {label: '1', id: 'label-1', location: 0.1}],
-            //     ['Label', {label: '1', id: 'label-n', location: 0.9}],
-            //   ];
-            // } else if (i.cardinalType === 1) {
-            //   overlays = [
-            //     ['Arrow', {location: 0.7}, arrowCommon],
-            //     ['Label', {label: '1', id: 'label-1', location: 0.1}],
-            //     ['Label', {label: 'N', id: 'label-n', location: 0.9}],
-            //   ];
-            // } else if (i.cardinalType === 2) {
-            //   overlays = [
-            //     ['Arrow', {location: 0.7}, arrowCommon],
-            //     ['Label', {label: 'N', id: 'label-1', location: 0.1}],
-            //     ['Label', {label: '1', id: 'label-n', location: 0.9}],
-            //   ];
-            // }
-            // vm.instance.connect({
-            //   uuids: uuid,
-            //   overlays,
-            // });
           }
           vm.instance.bind('click', function (conn, originalEvent){
             if (confirm('确定删除所点击的链接吗？')){
