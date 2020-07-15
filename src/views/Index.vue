@@ -8,7 +8,7 @@
         </div>
         <div class="panel-body points demo flow_chart" id="points" style="height: 80%;">
           <div v-for="(val, point) in data.formMap" :id="point" class="point" :style="{left: val.x + 'px', top: val.y + 'px'}">
-            <div style="padding:0 0.5em; background: #409EFF; cursor: default; display: flex; justify-content: space-between"><span @click="editTable" class="click-point">⚙</span><span class="name-change" style="font-size: 12px;">{{val.name}}</span><i class="delete-show ios-close">×</i></div>
+            <div style="padding:0 0.5em; background: #409EFF; cursor: default; display: flex; justify-content: space-between"><span class="click-point">⚙</span><span class="name-change" style="font-size: 12px;">{{val.name}}</span><i class="delete-show ios-close">×</i></div>
             <div class="add-content">
               <div v-for="(val1, m) in val.fieldMap" style="color:black; border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" :id="point + '-' + m"><div class="param-name" style="font-size: 12px">{{val1.name}}</div><div><span class="edit-row" style="cursor: pointer; margin-right: 10px">✏</span><span class="delete-row" style="cursor: pointer">×</span></div></div>
             </div>
@@ -16,51 +16,27 @@
           </div>
         </div>
         <el-dialog
-                title="修改表属性"
-                :visible.sync="dialogVisible">
-            <el-form v-model="tableForm">
-                <el-form-item label="表名：">
-                    <el-input disabled v-model="tableForm.name"></el-input>
-                </el-form-item>
-                <el-form-item label="Code：">
-                    <el-input disabled v-model="tableForm.code"></el-input>
-                </el-form-item>
-            </el-form>
-            <el-form ref="form" :model="currentParam">
-                <el-form-item label="字段名：">
-                    <el-input v-model="currentParam.name"></el-input>
-                </el-form-item>
-                <el-form-item label="code：">
-                    <el-input v-model="currentParam.code"></el-input>
-                </el-form-item>
-                <el-form-item label="类型：">
-                    <el-select v-model="currentParam.dataType" label-in-value="true" placeholder="请选择类型"
-                               @on-change="getSelectedValue">
-                        <el-option
-                                v-for="o in options"
-                                :key="o.value"
-                                :label="o.label"
-                                :value="o.value">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="cancel">取 消</el-button>
-                <el-button type="primary" @click="editOk">确 定</el-button>
-            </div>
-        </el-dialog>
-        <el-dialog
-                title="修改表名"
+                title="关联设置"
                 :visible.sync="editVisible"
                 width="30%">
-            <el-form ref="tableForm" :model="tableForm" label-width="60" :rules="ruleInline">
-                <el-form-item prop="name" label="表名：">
-                    <el-input v-model="tableForm.name"/>
+            <el-form v-if="tableForm" ref="tableForm" :model="tableForm" label-width="100" :rules="ruleInline">
+                <el-form-item prop="name" label="子表名：">
+                    <el-input v-model="data.formMap[tableForm.formId].name" readonly/>
                 </el-form-item>
-                <el-form-item prop="code" label="Code：">
-                    <el-input :disabled="newNodeEvent == null" v-model="tableForm.code"/>
+                <el-form-item prop="code" label="子表明关联字段">
+                  <el-input v-model="data.formMap[tableForm.formId].fieldMap[tableForm.fieldId].name" readonly/>
                 </el-form-item>
+              <el-form-item prop="name" label="父表名：">
+                <el-input v-model="data.formMap[tableForm.targetFormId].name" readonly/>
+              </el-form-item>
+              <el-form-item prop="code" label="父表关联字段">
+                <el-input v-model="data.formMap[tableForm.targetFormId].fieldMap[tableForm.targetFieldId].name" readonly/>
+              </el-form-item>
+              <el-form-item prop="code" label="父表关联显示字段">
+                <el-select style="width: 100%" v-model="tableForm.targetDisplayFieldId" @change="changeSelect">
+                  <el-option v-for="(val, key) in data.formMap[tableForm.targetFormId].fieldMap" :key="key" :value="val.id" :label="val.name"></el-option>
+                </el-select>
+              </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="editCancel">取 消</el-button>
@@ -150,10 +126,7 @@
         newNodeEvent: null,
         isDragging: false,
         instance: {},
-        currentTable: null,
-        tableForm: {
-          columns: [],
-        },   // 正在编辑的表格
+        tableForm: null,
         currentItem: 0,
         currentInput: null,
         editVisible: false,
@@ -165,9 +138,9 @@
       this.data = myData;
     },
     methods: {
-      getSelectedValue(g){
-        this.currentParam.dataType = g.value;
-        this.currentParam.dataTypeText = g.label;
+      changeSelect(e) {
+        console.log(this.tableForm.targetDisplayFieldId);
+        console.log(this.data.formMap[this.tableForm.targetFormId].fieldMap);
       },
       editOk(){
         this.data.schemes[this.currentItem].columns[this.currentParamIndex] = this.currentParam;
@@ -176,7 +149,7 @@
       },
       editCancel(){
         this.editVisible = false;
-        this.tableForm = {};
+        this.tableForm = null;
       },
       tableChange(){
         this.editVisible = false;
@@ -194,68 +167,6 @@
       cancel(){
         this.dialogVisible = false;
       },
-      newConfirm(){
-        const vm = this;
-        for (const i of this.data.schemes){
-          if (vm.tableForm.code === i.code){
-            this.$message('表的Code不能重复！');
-            return;
-          }
-        }
-        $('.points').append(
-          `<div id="${vm.tableForm.code}" class="point">
-              <div style="padding:0.5em 0.5em; cursor:default; background: #acd; display: flex; justify-content: space-between"><i class="click-point el-icon-edit"></i><span class="name-change" style="font-size: 12px;height: 20px;line-height: 20px">${vm.tableForm.name}</span><i class="delete-show ivu-icon-ios-close"></i></div>
-              <div class="add-content"></div>
-               </div>`,
-        );
-        $('#' + vm.tableForm.code).css('left', 0);
-        $('#' + vm.tableForm.code).css('top', 0);
-        $('.click-point').bind('click', function (e){
-          vm.dialogVisible = true;
-          vm.currentTable = e.target.parentNode.parentNode.id;
-          console.log(vm.currentTable);
-        })
-        $('.delete-show').bind('click', function (){
-
-        });
-        vm.currentTable = vm.tableForm.code;
-        $('#' + vm.currentTable).find('.name-change').html(vm.tableForm.name)
-        $('#' + vm.currentTable).find('.add-content').empty();
-        vm.instance.removeAllEndpoints($('#' + vm.currentTable).attr('id'));
-        // 编辑的数据和点
-        for (const i of vm.tableForm.columns){
-          $('#' + vm.currentTable).find('.add-content').append(`<div id="${vm.currentTable + ' ' + i.code}" class="param-name" style="padding: 0 0.8em;border-top: 1px solid #cccccc; font-size: 12px">${i.name}</div>`);
-          vm.instance.addEndpoint(vm.currentTable + ' ' + i.code, {
-            uuid: `${vm.currentTable + ' ' + i.code}-left`,
-            anchor: 'Left',
-            maxConnections: -1,
-            connectorStyle: { stroke: 'green' },
-          }, {
-            isSource: true,
-            isTarget: true,
-            dragAllowedWhenFull: true,
-          });
-          vm.instance.addEndpoint(vm.currentTable + ' ' + i.code, {
-            uuid: `${vm.currentTable + ' ' + i.code}-right`,
-            anchor: 'Right',
-            maxConnections: -1,
-            // connectorStyle: { stroke: 'gray' },
-          }, {
-            isSource: true,
-            isTarget: true,
-            dragAllowedWhenFull: true,
-          });
-        }
-        // 添加进数据
-        vm.data.schemes.push(vm.tableForm)
-        vm.dialogVisible = false;
-        vm.instance.draggable(`${vm.tableForm.code}`);
-        vm.isDragging = false;
-        vm.newNodeEvent = null;
-        vm.tableForm = {
-          columns: [],
-        };
-      },
       createDiv(){
         this.newNodeEvent = true;
         this.dialogVisible = true;
@@ -267,84 +178,21 @@
           console.log(event.offsetX + ',' + event.offsetY);
         }
       },
-      addParam(){
-        const vm = this;
-        if (this.newNodeEvent === null){
-          vm.dialogVisible = false;
-          $('#' + vm.currentTable).find('.name-change').html(vm.tableForm.name)
-          $('#' + vm.currentTable).find('.add-content').empty();
-          vm.instance.removeAllEndpoints($('#' + vm.currentTable).attr('id'));
-          // 编辑的数据和点
-          for (const i of vm.tableForm.columns){
-            $('#' + vm.tableForm.code).find('.add-content').append(`<div style="border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" id="${vm.tableForm.code + '-' + i.code}"><div class="param-name" style="font-size: 12px">${i.name}(${i.dataTypeText})</div><div><span style="cursor: pointer; margin-right: 10px">🖊</span><span style="cursor: pointer">×</span></div></div>`);
-            vm.instance.addEndpoint(vm.currentTable + ' ' + i.code, {
-              uuid: `${vm.currentTable + '-' + i.code}-left`,
-              anchor: 'Left',
-              maxConnections: -1,
-              connectorStyle: { stroke: '#61B7CF' },
-            }, {
-              isSource: true,
-              isTarget: true,
-              dragAllowedWhenFull: true,
-            });
-            vm.instance.addEndpoint(vm.currentTable + '-' + i.code, {
-              uuid: `${vm.currentTable + '-' + i.code}-right`,
-              anchor: 'Right',
-              maxConnections: -1,
-              connectorStyle: { stroke: '#61B7CF' },
-            }, {
-              isSource: true,
-              isTarget: true,
-              dragAllowedWhenFull: true,
-            });
-          }
-          for (const i of vm.data.line){
-            if (i[0] === vm.currentTable){
-              const uuid = [`${i[0]}-bottom`, `${i[1]}-top`];
-              vm.instance.connect({
-                uuids: uuid,
-                overlays,
-              });
-            }else if (i[1] === vm.currentTable){
-              const uuid = [`${i[0]}-bottom`, `${i[1]}-top`];
-              vm.instance.connect({
-                uuids: uuid,
-                overlays,
-              });
-            }
-          }
-        }else{
-          vm.newConfirm();
-        }
-      },
       // 增加字段项
-      addColumns(){
-        const obj = {
-          id: '',
-          name: '',
-          code: '',
-          dataType: null,
-          dataTypeText: '',
-          relationCode: '',
-        };
-        this.tableForm.columns.push(obj);
-      },
-      deleteColumns(index){
-        this.tableForm.columns.splice(index, 1);
-      },
-      editTable(e) {
+      editTable(conn) {
         let vm = this;
         vm.editVisible = true;
-        vm.currentTable = e.target.parentNode.parentNode.id;
-        let index = 0;
-        for (const k in vm.data.formMap){
-          if (k == e.target.parentNode.parentNode.id){
-            vm.currentItem = index
-            vm.tableForm = { ...vm.data.formMap[k] };
-            break;
+        vm.data.formMap[conn.sourceId.split('-')[0]].fieldMap[conn.sourceId.split('-')[1]].otherAttrs.targetLines.forEach(element => {
+          if (element.targetFormId == conn.targetId.split('-')[0] && element.targetFieldId == conn.targetId.split('-')[1]){
+            vm.currentItem = vm.data.formMap[conn.sourceId.split('-')[0]].fieldMap[conn.sourceId.split('-')[1]].otherAttrs.targetLines.indexOf(element);
+            vm.tableForm = element
           }
-          index++;
-        }
+        })
+      },
+      deleteConnection(conn) {
+        let vm = this;
+        vm.instance.deleteConnection(conn);
+        vm.data.formMap[conn.sourceId.split('-')[0]].fieldMap[conn.sourceId.split('-')[1]].otherAttrs.targetLines.splice(vm.currentItem, 1);
       },
       createFlow(){
         let vm = this;
@@ -421,36 +269,6 @@
             }
             vm.instance.draggable(`${point}`);
           }
-          // 删除Node
-          $('.delete-show').bind('click', function (e){
-            if (confirm('确定删除该数据表吗')){
-              vm.instance.remove(e.target.parentNode.parentNode.id);
-            }
-          });
-          // 编辑每一行字段
-          $('.edit-row').bind('click', function (e){
-            let tableCode = e.target.parentNode.parentNode.id.split('-')[0];
-            let paramCode = e.target.parentNode.parentNode.id.split('-')[1];
-            let index = 0
-            for (const n in vm.data.formMap){
-              if (n == tableCode){
-                vm.currentItem = index;
-                vm.tableForm = { ...n };
-                let index1 = 0;
-                for (const q in vm.data.formMap[n].fieldMap){
-                  if (q == paramCode){
-                    vm.currentParam = { ...vm.data.formMap[n].fieldMap[q] };
-                    vm.lastParam = { ...vm.data.formMap[n].fieldMap[q] };
-                    vm.currentParamIndex = index1;
-                    break;
-                  }
-                  index1++;
-                }
-              }
-              index++;
-            }
-            vm.dialogVisible = true;
-          });
           // init transition
           for (const i in vm.data.formMap){
             // 有关系表
@@ -468,15 +286,7 @@
             }
           }
           vm.instance.bind('click', function (conn, originalEvent){
-            if (confirm('确定删除所点击的链接吗？')){
-              vm.instance.deleteConnection(conn);
-              vm.data.formMap[conn.sourceId.split('-')[0]].fieldMap[conn.sourceId.split('-')[1]].otherAttrs.targetLines.forEach(element => {
-                if (element.targetFormId == conn.targetId.split('-')[0] && element.targetFieldId == conn.targetId.split('-')[1]){
-                  let i = vm.data.formMap[conn.sourceId.split('-')[0]].fieldMap[conn.sourceId.split('-')[1]].otherAttrs.targetLines.indexOf(element);
-                  vm.data.formMap[conn.sourceId.split('-')[0]].fieldMap[conn.sourceId.split('-')[1]].otherAttrs.targetLines.splice(i, 1);
-                }
-              })
-            }
+            vm.editTable(conn);
           });
         });
         vm.instance.fire('jsPlumbDemoLoaded', vm.instance);
@@ -495,7 +305,7 @@
         vm.instance.deleteEveryEndpoint();
         vm.instance.batch(function (){
           for (const point of vm.data.schemes){
-            for (const m of point.columns){
+            for (const m of point.columns){lu
               vm.instance.addEndpoint(point.code + '-' + m.code, {
                 uuid: `${point.code + '-' + m.code}-left`,
                 anchor: 'Left',
@@ -516,50 +326,8 @@
                 isTarget: true,
                 dragAllowedWhenFull: true,
               });
-//              vm.instance.draggable(`${point.code + '-' + m.code}-left`);
-//              vm.instance.draggable(`${point.code + '-' + m.code}-right`);
             }
           }
-          // for (const i of vm.data.relations) {
-          //   // 有关系表
-          //   if (i.middleRelationEntityCode !== null) {
-          //     const uuid = [i.parentEntityCode + '-' + 'Id' + '-right', i.middleRelationEntityCode + '-' + i.parentRelationColumnCode + '-left'];
-          //     vm.instance.connect({
-          //       uuids: uuid,
-          //       overlays,
-          //     });
-          //     const uuid1 = [i.middleRelationEntityCode + '-' + i.childRelationColumnCode + '-right', i.childEntityCode + '-' + 'Id' + '-left'];
-          //     vm.instance.connect({
-          //       uuids: uuid1,
-          //       overlays,
-          //     });
-          //     continue;
-          //   }
-          //   const uuid = [i.parentEntityCode + '-' + i.parentRelationColumnCode + '-right', i.childEntityCode + '-' + i.childRelationColumnCode + '-left'];
-          //   if (i.cardinalType === 0) {
-          //     overlays = [
-          //       ['Arrow', {location: 0.7}, arrowCommon],
-          //       ['Label', {label: '1', id: 'label-1', location: 0.1}],
-          //       ['Label', {label: '1', id: 'label-n', location: 0.9}],
-          //     ];
-          //   } else if (i.cardinalType === 1) {
-          //     overlays = [
-          //       ['Arrow', {location: 0.7}, arrowCommon],
-          //       ['Label', {label: '1', id: 'label-1', location: 0.1}],
-          //       ['Label', {label: 'N', id: 'label-n', location: 0.9}],
-          //     ];
-          //   } else if (i.cardinalType === 2) {
-          //     overlays = [
-          //       ['Arrow', {location: 0.7}, arrowCommon],
-          //       ['Label', {label: 'N', id: 'label-1', location: 0.1}],
-          //       ['Label', {label: '1', id: 'label-n', location: 0.9}],
-          //     ];
-          //   }
-          //   vm.instance.connect({
-          //     uuids: uuid,
-          //     overlays,
-          //   });
-          // }
         });
       }
     },

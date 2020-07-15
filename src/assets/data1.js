@@ -21,6 +21,7 @@ export default {
               fieldId:1,//本表字段id
               targetFormId:2,//目标表单id
               targetFieldId:2,//目标字段id
+              targetDisplayFieldId: null
             }],
           }
         },
@@ -46,7 +47,7 @@ export default {
           otherAttrs:{}
         },
         2:{
-          id:1, //字段id
+          id:2, //字段id
           bizId:'column2',//业务id，表字段名
           name:'第二表第二列',//字段中文名
           otherAttrs:{ //其它属性中
