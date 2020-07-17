@@ -7,7 +7,7 @@
             <el-button @click="createDiv">新建</el-button>
         </div>
         <div class="panel-body points demo flow_chart" id="points" style="height: 80%;">
-          <div v-for="(val, point) in data.formMap" :id="point" class="point" :style="{left: val.x + 'px', top: val.y + 'px'}">
+          <div v-for="(val, point) in data.formMap" :id="point" class="point" :style="calPosition(val)">
             <div style="padding:0 0.5em; background: #409EFF; cursor: default; display: flex; justify-content: space-between"><span class="click-point">⚙</span><span class="name-change" style="font-size: 12px;">{{val.name}}</span><i class="delete-show ios-close">×</i></div>
             <div class="add-content">
               <div v-for="(val1, m) in val.fieldMap" style="color:black; border-top: 1px solid #cccccc;display: flex;padding: 0 0.8em; justify-content: space-between" :id="point + '-' + m"><div class="param-name" style="font-size: 12px">{{val1.name}}</div><div><span class="edit-row" style="cursor: pointer; margin-right: 10px">✏</span><span class="delete-row" style="cursor: pointer">×</span></div></div>
@@ -40,6 +40,7 @@
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="editCancel">取 消</el-button>
+                <el-button type="error" @click="deleteConnection">删 除</el-button>
                 <el-button type="primary" @click="tableChange">确 定</el-button>
             </div>
         </el-dialog>
@@ -128,6 +129,7 @@
         instance: {},
         tableForm: null,
         currentItem: 0,
+        currentConn: null,
         currentInput: null,
         editVisible: false,
         dialogVisible: false,
@@ -138,31 +140,25 @@
       this.data = myData;
     },
     methods: {
+      calPosition(val) {
+        if (val.x && val.y) {
+          return {left: val.x + 'px', top: val.y + 'px'}
+        } else {
+          return {left: Math.ceil(Math.random()*1000) + 'px', top: Math.ceil(Math.random()*800) + 'px'}
+        }
+      },
       changeSelect(e) {
         console.log(this.tableForm.targetDisplayFieldId);
         console.log(this.data.formMap[this.tableForm.targetFormId].fieldMap);
-      },
-      editOk(){
-        this.data.schemes[this.currentItem].columns[this.currentParamIndex] = this.currentParam;
-        $('#' + this.data.schemes[this.currentItem].code + '-' + this.data.schemes[this.currentItem].columns[this.currentParamIndex].code).find('.param-name').html(this.currentParam.name + '(' + this.currentParam.dataTypeText + ')');
-        this.dialogVisible = false;
       },
       editCancel(){
         this.editVisible = false;
         this.tableForm = null;
       },
       tableChange(){
+        // 保存修改后连线
         this.editVisible = false;
-        this.$refs.tableForm.validate((valid) => {
-          if (valid){
-            this.$Message.success('修改成功!');
-            this.data.schemes[this.currentItem].name = this.tableForm.name;
-            this.data.schemes[this.currentItem].code = this.tableForm.code;
-          }else{
-            this.$Message.error('修改失败，请正确完善信息！');
-          }
-        });
-        console.log(this.data.schemes);
+        console.log(this.data);
       },
       cancel(){
         this.dialogVisible = false;
@@ -182,6 +178,7 @@
       editTable(conn) {
         let vm = this;
         vm.editVisible = true;
+        vm.currentConn = conn;
         vm.data.formMap[conn.sourceId.split('-')[0]].fieldMap[conn.sourceId.split('-')[1]].otherAttrs.targetLines.forEach(element => {
           if (element.targetFormId == conn.targetId.split('-')[0] && element.targetFieldId == conn.targetId.split('-')[1]){
             vm.currentItem = vm.data.formMap[conn.sourceId.split('-')[0]].fieldMap[conn.sourceId.split('-')[1]].otherAttrs.targetLines.indexOf(element);
@@ -189,10 +186,10 @@
           }
         })
       },
-      deleteConnection(conn) {
+      deleteConnection() {
         let vm = this;
-        vm.instance.deleteConnection(conn);
-        vm.data.formMap[conn.sourceId.split('-')[0]].fieldMap[conn.sourceId.split('-')[1]].otherAttrs.targetLines.splice(vm.currentItem, 1);
+        vm.instance.deleteConnection(vm.currentItem);
+        vm.data.formMap[vm.currentItem.sourceId.split('-')[0]].fieldMap[vm.currentItem.sourceId.split('-')[1]].otherAttrs.targetLines.splice(vm.currentItem, 1);
       },
       createFlow(){
         let vm = this;
